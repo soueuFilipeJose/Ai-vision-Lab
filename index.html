@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Classificador Fofinho 🧸</title>
+
+    <style>
+        body {
+            margin: 0;
+            font-family: "Segoe UI", sans-serif;
+            background: linear-gradient(135deg, #fbc2eb, #a6c1ee);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+        }
+
+        .container {
+            background: #ffffffcc;
+            backdrop-filter: blur(10px);
+            padding: 30px;
+            border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            text-align: center;
+            width: 320px;
+            animation: fadeIn 0.8s ease;
+        }
+
+        h1 {
+            margin-bottom: 10px;
+            color: #6b21a8;
+        }
+
+        p {
+            font-size: 0.9rem;
+            color: #555;
+        }
+
+        button {
+            background: linear-gradient(135deg, #ff9a9e, #fad0c4);
+            border: none;
+            padding: 12px 18px;
+            border-radius: 12px;
+            font-size: 1rem;
+            cursor: pointer;
+            margin-top: 15px;
+            transition: 0.3s;
+        }
+
+        button:hover {
+            transform: scale(1.05);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        }
+
+        #webcam-container {
+            margin-top: 20px;
+        }
+
+        canvas {
+            border-radius: 15px;
+        }
+
+        #label-container {
+            margin-top: 15px;
+        }
+
+        .label-item {
+            background: #f3e8ff;
+            margin: 5px 0;
+            padding: 8px;
+            border-radius: 10px;
+            font-size: 0.9rem;
+            transition: 0.3s;
+        }
+
+        .highlight {
+            background: #f9a8d4;
+            color: white;
+            font-weight: bold;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+<div class="container">
+    <h1>🧸 Classificador</h1>
+    <p>Clique no botão para começar</p>
+
+    <button id="startBtn">✨ Iniciar</button>
+
+    <div id="webcam-container"></div>
+    <div id="label-container"></div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@latest/dist/tf.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@teachablemachine/image@latest/dist/teachablemachine-image.min.js"></script>
+
+<script>
+    const URL = "https://teachablemachine.withgoogle.com/models/KKVX3Lts-/";
+
+    let model, webcam, labelContainer, maxPredictions;
+
+    const startBtn = document.getElementById("startBtn");
+    startBtn.addEventListener("click", init);
+
+    async function init() {
+        startBtn.disabled = true;
+        startBtn.innerText = "🌸 Carregando...";
+
+        try {
+            model = await tmImage.load(URL + "model.json", URL + "metadata.json");
+            maxPredictions = model.getTotalClasses();
+
+            webcam = new tmImage.Webcam(250, 250, true);
+            await webcam.setup();
+            await webcam.play();
+
+            window.requestAnimationFrame(loop);
+
+            document.getElementById("webcam-container").appendChild(webcam.canvas);
+
+            labelContainer = document.getElementById("label-container");
+            labelContainer.innerHTML = "";
+
+            for (let i = 0; i < maxPredictions; i++) {
+                const div = document.createElement("div");
+                div.classList.add("label-item");
+                labelContainer.appendChild(div);
+            }
+
+            startBtn.innerText = "💖 Rodando!";
+        } catch (e) {
+            startBtn.innerText = "Erro 😢";
+            console.error(e);
+        }
+    }
+
+    async function loop() {
+        webcam.update();
+        await predict();
+        window.requestAnimationFrame(loop);
+    }
+
+    async function predict() {
+        const predictions = await model.predict(webcam.canvas);
+
+        let highestIndex = 0;
+
+        predictions.forEach((p, i) => {
+            if (p.probability > predictions[highestIndex].probability) {
+                highestIndex = i;
+            }
+        });
+
+        predictions.forEach((p, i) => {
+            const text = `${p.className}: ${(p.probability * 100).toFixed(1)}%`;
+
+            const el = labelContainer.childNodes[i];
+            el.innerHTML = text;
+
+            el.classList.remove("highlight");
+            if (i === highestIndex) {
+                el.classList.add("highlight");
+            }
+        });
+    }
+</script>
+
+</body>
+</html>
