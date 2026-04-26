@@ -772,6 +772,9 @@ body.live-mode .live-actions {
   .modules {
     grid-template-columns: 1fr;
   }
+  .about-card {
+  grid-template-columns: 1fr;
+  }
 }
 
 @media (max-width: 620px) {
