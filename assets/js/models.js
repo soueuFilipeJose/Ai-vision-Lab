@@ -12,6 +12,6 @@ const MODELS = {
     resultLabel: "Emoção detectada",
     instructionTitle: "Mostre uma emoção para a câmera",
     instructionText: "Tente expressões como feliz, triste, bravo ou surpreso.",
-    path: "./models/emotions/"
+    path: "https://teachablemachine.withgoogle.com/models/ZM5k5nh0z/"
   }
 };
